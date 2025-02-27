@@ -33,7 +33,8 @@ def generate_handwriting(model, text, char_to_id, device, args):
     direction = 'right-to-left' if any(ord(c) >= 0x0600 and ord(c) <= 0x06FF for c in text) else 'left-to-right'
     final_svg = arrange_svgs(svgs, writing_direction=direction)
     
-    with open(args.output, 'w') as f:
+    # エンコーディングをUTF-8に指定して日本語等の二バイト文字に対応
+    with open(args.output, 'w', encoding='utf-8') as f:
         f.write(final_svg)
     
     if args.convert_to in ['png', 'jpg']:

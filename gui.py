@@ -1,3 +1,4 @@
+import argparse
 import tkinter as tk
 from tkinter import ttk
 from generate import generate_handwriting, HandwritingModel
