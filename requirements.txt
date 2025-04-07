@@ -1,0 +1,26 @@
+Python package dependencies for the AI SVG Handwriting Generator project.
+Use 'pip install -r requirements.txt' to install.
+
+# Core Deep Learning & Numerics
+torch>=2.0.0
+numpy>=1.20.0
+
+# Configuration Parsing
+PyYAML>=6.0
+
+# SVG Rasterization & Image Handling (GUI Preview, PNG/JPG Output)
+# NOTE: cairosvg requires the Cairo system library to be installed.
+cairosvg>=2.7.0
+Pillow>=9.0.0
+
+# Font Generation Utilities
+# NOTE: Requires fontTools and cu2qu for font conversion feature.
+fontTools>=4.40.0
+cu2qu>=1.6.7
+
+# API Interaction (GlyphWiki)
+requests>=2.25.0
+
+# Stroke Simplification (Optional Utility)
+# Included for the feature in svg_utils, but not strictly core if unused.
+rdp>=0.8
