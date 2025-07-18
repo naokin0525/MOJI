@@ -14,7 +14,10 @@ from svgpathtools import parse_path
 
 from src.config import MAX_POINTS_PER_STROKE, EPSILON
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
+
 
 def parse_svg_file(file_path: str):
     """
@@ -37,8 +40,8 @@ def parse_svg_file(file_path: str):
     try:
         tree = etree.parse(file_path)
         root = tree.getroot()
-        namespace = {'svg': 'http://www.w3.org/2000/svg'}
-        paths = root.xpath('//svg:path', namespaces=namespace)
+        namespace = {"svg": "http://www.w3.org/2000/svg"}
+        paths = root.xpath("//svg:path", namespaces=namespace)
 
         if not paths:
             logging.warning(f"No paths found in SVG file: {file_path}")
@@ -48,7 +51,7 @@ def parse_svg_file(file_path: str):
         last_point = np.array([0.0, 0.0])
 
         for path_element in paths:
-            path_data = path_element.get('d')
+            path_data = path_element.get("d")
             if not path_data:
                 continue
 
@@ -62,7 +65,7 @@ def parse_svg_file(file_path: str):
                 # Sample points uniformly along the path length
                 p = path.point(i / (num_samples - 1))
                 points.append([p.real, p.imag])
-            
+
             points = np.array(points)
 
             # Convert to delta coordinates (dx, dy)
@@ -75,15 +78,15 @@ def parse_svg_file(file_path: str):
             stroke_data[:, :2] = deltas
             stroke_data[:, 2] = 1.0  # Default pressure
             stroke_data[:, 3] = 1.0  # Pen is down for the whole stroke
-            stroke_data[0, 3] = 0.0 # Pen lifts to move to the start of this new stroke
-            stroke_data[-1, 4] = 1.0 # Mark the end of this stroke
+            stroke_data[0, 3] = 0.0  # Pen lifts to move to the start of this new stroke
+            stroke_data[-1, 4] = 1.0  # Mark the end of this stroke
 
             all_strokes.append(stroke_data)
             last_point = points[-1]
 
         if not all_strokes:
             return None
-        
+
         # The first stroke's "pen up" flag should be 1 (start of drawing)
         all_strokes[0][0, 3] = 1.0
 

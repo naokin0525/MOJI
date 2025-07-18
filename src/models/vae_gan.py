@@ -14,10 +14,18 @@ Variational Autoencoder (VAE) and a Generative Adversarial Network (GAN).
 import torch
 import torch.nn as nn
 from src.models.rnn import SequenceModel
-from src.config import INPUT_DIM, LATENT_DIM, RNN_HIDDEN_DIM, RNN_NUM_LAYERS, RNN_DROPOUT
+from src.config import (
+    INPUT_DIM,
+    LATENT_DIM,
+    RNN_HIDDEN_DIM,
+    RNN_NUM_LAYERS,
+    RNN_DROPOUT,
+)
+
 
 class Encoder(nn.Module):
     """Encodes a sequence of strokes into a latent space representation."""
+
     def __init__(self):
         super(Encoder, self).__init__()
         self.rnn = SequenceModel(INPUT_DIM, RNN_HIDDEN_DIM, RNN_NUM_LAYERS, RNN_DROPOUT)
@@ -33,8 +41,10 @@ class Encoder(nn.Module):
         logvar = self.fc_logvar(hidden_forward_backward)
         return mu, logvar
 
+
 class Generator(nn.Module):
     """Generates a sequence of strokes from a latent vector."""
+
     def __init__(self):
         super(Generator, self).__init__()
         self.latent_to_hidden = nn.Linear(LATENT_DIM, RNN_HIDDEN_DIM * RNN_NUM_LAYERS)
@@ -43,25 +53,31 @@ class Generator(nn.Module):
 
     def forward(self, z, max_seq_len):
         # Prepare initial hidden and cell states from the latent vector
-        hidden = self.latent_to_hidden(z).view(RNN_NUM_LAYERS, z.size(0), RNN_HIDDEN_DIM)
-        cell = torch.zeros_like(hidden) # Start with zero cell state
+        hidden = self.latent_to_hidden(z).view(
+            RNN_NUM_LAYERS, z.size(0), RNN_HIDDEN_DIM
+        )
+        cell = torch.zeros_like(hidden)  # Start with zero cell state
 
         # Initial input point (start of sequence token)
         batch_size = z.size(0)
         input_point = torch.zeros(batch_size, 1, INPUT_DIM, device=z.device)
-        input_point[:, :, 3] = 1 # Set pen_down to 1 to start drawing
+        input_point[:, :, 3] = 1  # Set pen_down to 1 to start drawing
 
         outputs = []
         for _ in range(max_seq_len):
             output, (hidden, cell) = self.rnn(input_point, (hidden, cell))
             output_point = self.fc_out(output)
             outputs.append(output_point)
-            input_point = output_point # Use the output as the next input (autoregressive)
+            input_point = (
+                output_point  # Use the output as the next input (autoregressive)
+            )
 
         return torch.cat(outputs, dim=1)
 
+
 class Discriminator(nn.Module):
     """Distinguishes between real and generated stroke sequences."""
+
     def __init__(self):
         super(Discriminator, self).__init__()
         self.rnn = SequenceModel(INPUT_DIM, RNN_HIDDEN_DIM, RNN_NUM_LAYERS, RNN_DROPOUT)
@@ -70,7 +86,7 @@ class Discriminator(nn.Module):
             nn.Linear(RNN_HIDDEN_DIM * 2, 128),
             nn.LeakyReLU(0.2, inplace=True),
             nn.Linear(128, 1),
-            nn.Sigmoid() # Output a probability
+            nn.Sigmoid(),  # Output a probability
         )
 
     def forward(self, x, lengths):
@@ -81,8 +97,10 @@ class Discriminator(nn.Module):
         validity = self.fc(last_outputs)
         return validity
 
+
 class VAE_GAN(nn.Module):
     """The main class that combines the VAE and GAN components."""
+
     def __init__(self):
         super(VAE_GAN, self).__init__()
         self.encoder = Encoder()

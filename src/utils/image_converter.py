@@ -13,9 +13,17 @@ from fonttools.fontBuilder import FontBuilder
 from fonttools.pens.ttGlyphPen import TTGlyphPen
 from svgpathtools import parse_path
 
-from src.config import PNG_SCALE_FACTOR, FONT_UNITS_PER_EM, FONT_FAMILY_NAME, FONT_STYLE_NAME
+from src.config import (
+    PNG_SCALE_FACTOR,
+    FONT_UNITS_PER_EM,
+    FONT_FAMILY_NAME,
+    FONT_STYLE_NAME,
+)
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
+
 
 def svg_to_png(svg_path: str, png_path: str):
     """Converts an SVG file to a PNG file."""
@@ -24,6 +32,7 @@ def svg_to_png(svg_path: str, png_path: str):
         logging.info(f"Successfully converted {svg_path} to {png_path}")
     except Exception as e:
         logging.error(f"Failed to convert SVG to PNG: {e}")
+
 
 def svg_to_jpg(svg_path: str, jpg_path: str):
     """Converts an SVG file to a JPG file by first rendering to PNG."""
@@ -37,8 +46,10 @@ def svg_to_jpg(svg_path: str, jpg_path: str):
         logging.error(f"Failed to convert SVG to JPG: {e}")
     finally:
         import os
+
         if os.path.exists(temp_png_path):
             os.remove(temp_png_path)
+
 
 def generate_font(model, character_map: dict, output_path: str):
     """
@@ -56,7 +67,7 @@ def generate_font(model, character_map: dict, output_path: str):
         fb = FontBuilder(FONT_UNITS_PER_EM)
         fb.setupGlyphOrder([".notdef"] + list(character_map.keys()))
         fb.setupCharacterMap(character_map)
-        
+
         # This is a simplified representation. A real implementation needs
         # to generate a canonical SVG for each character from the model.
         # For now, we assume `character_map` gives us pre-generated SVG path strings.
@@ -67,16 +78,17 @@ def generate_font(model, character_map: dict, output_path: str):
             path.draw(pen)
             glyphs[char] = pen.glyph()
 
-        fb.setupGlyphMetrics({'.notdef': (600, 0)}) # Default width for .notdef
+        fb.setupGlyphMetrics({".notdef": (600, 0)})  # Default width for .notdef
         for char, glyph in glyphs.items():
             # You would need to calculate glyph width properly
             fb.setupGlyphMetrics({char: (glyph.width, 0)})
 
-
         fb.glyphs = glyphs
         fb.setupHorizontalMetrics()
         # Naming and metadata
-        fb.setupNameTable({'familyName': FONT_FAMILY_NAME, 'styleName': FONT_STYLE_NAME})
+        fb.setupNameTable(
+            {"familyName": FONT_FAMILY_NAME, "styleName": FONT_STYLE_NAME}
+        )
         fb.setupOS2()
         fb.setupPost()
         fb.setupFpgm()

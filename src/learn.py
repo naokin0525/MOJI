@@ -20,17 +20,29 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader
 
 from src.config import (
-    DEVICE, MODEL_DIR, RANDOM_SEED, KLD_WEIGHT,
-    BATCH_SIZE, LEARNING_RATE_GENERATOR, LEARNING_RATE_DISCRIMINATOR,
-    BETA1, BETA2, LOG_INTERVAL, SAVE_MODEL_EPOCH_INTERVAL
+    DEVICE,
+    MODEL_DIR,
+    RANDOM_SEED,
+    KLD_WEIGHT,
+    BATCH_SIZE,
+    LEARNING_RATE_GENERATOR,
+    LEARNING_RATE_DISCRIMINATOR,
+    BETA1,
+    BETA2,
+    LOG_INTERVAL,
+    SAVE_MODEL_EPOCH_INTERVAL,
 )
 from src.models.vae_gan import VAE_GAN
-from src.utils.dataset_loader import HandwritingDataset, create_or_load_dataset, collate_fn
+from src.utils.dataset_loader import (
+    HandwritingDataset,
+    create_or_load_dataset,
+    collate_fn,
+)
 
 # Setup logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - [%(funcName)s] - %(message)s'
+    format="%(asctime)s - %(levelname)s - [%(funcName)s] - %(message)s",
 )
 
 # Set random seed for reproducibility
@@ -38,18 +50,20 @@ torch.manual_seed(RANDOM_SEED)
 if torch.cuda.is_available():
     torch.cuda.manual_seed(RANDOM_SEED)
 
+
 def loss_function(reconstructed_x, x, mu, logvar):
     """
     Calculates the VAE loss, which is a combination of reconstruction loss and KL divergence.
     """
     # Reconstruction loss (Mean Squared Error)
-    recon_loss = F.mse_loss(reconstructed_x, x, reduction='sum')
-    
+    recon_loss = F.mse_loss(reconstructed_x, x, reduction="sum")
+
     # KL divergence loss
     # 0.5 * sum(1 + log(sigma^2) - mu^2 - sigma^2)
     kld_loss = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
-    
+
     return recon_loss, kld_loss
+
 
 def train(args):
     """Main training function."""
@@ -72,7 +86,7 @@ def train(args):
             shuffle=True,
             collate_fn=collate_fn,
             num_workers=4,
-            pin_memory=True
+            pin_memory=True,
         )
     except (ValueError, FileNotFoundError) as e:
         logging.error(f"Dataset loading failed: {e}")
@@ -83,21 +97,21 @@ def train(args):
     # ------------------------------------------------------------------------
     logging.info(f"Using device: {DEVICE}")
     model = VAE_GAN().to(DEVICE)
-    
+
     # Optimizers for Generator (VAE encoder + decoder) and Discriminator
     optimizer_G = optim.Adam(
         list(model.encoder.parameters()) + list(model.generator.parameters()),
         lr=LEARNING_RATE_GENERATOR,
-        betas=(BETA1, BETA2)
+        betas=(BETA1, BETA2),
     )
     optimizer_D = optim.Adam(
         model.discriminator.parameters(),
         lr=LEARNING_RATE_DISCRIMINATOR,
-        betas=(BETA1, BETA2)
+        betas=(BETA1, BETA2),
     )
 
     adversarial_loss = torch.nn.BCELoss().to(DEVICE)
-    
+
     logging.info("Starting training...")
     # ------------------------------------------------------------------------
     # 4. Training Loop
@@ -108,11 +122,11 @@ def train(args):
         total_d_loss = 0
 
         for batch_idx, batch in enumerate(data_loader):
-            real_data = batch['strokes'].to(DEVICE)
-            lengths = batch['lengths'].to(DEVICE)
-            
+            real_data = batch["strokes"].to(DEVICE)
+            lengths = batch["lengths"].to(DEVICE)
+
             batch_size = real_data.size(0)
-            
+
             # Create labels for adversarial loss
             real_labels = torch.full((batch_size, 1), 1.0, device=DEVICE)
             fake_labels = torch.full((batch_size, 1), 0.0, device=DEVICE)
@@ -121,7 +135,7 @@ def train(args):
             # Train Discriminator
             # ---------------------------------
             optimizer_D.zero_grad()
-            
+
             # Train with real data
             real_validity = model.discriminator(real_data, lengths)
             d_loss_real = adversarial_loss(real_validity, real_labels)
@@ -130,7 +144,7 @@ def train(args):
             reconstructed_data, _, _ = model(real_data, lengths)
             fake_validity = model.discriminator(reconstructed_data.detach(), lengths)
             d_loss_fake = adversarial_loss(fake_validity, fake_labels)
-            
+
             d_loss = (d_loss_real + d_loss_fake) / 2
             d_loss.backward()
             optimizer_D.step()
@@ -139,13 +153,15 @@ def train(args):
             # Train Generator (VAE)
             # ---------------------------------
             optimizer_G.zero_grad()
-            
+
             reconstructed_data, mu, logvar = model(real_data, lengths)
-            
+
             # VAE Loss
-            recon_loss, kld_loss = loss_function(reconstructed_data, real_data, mu, logvar)
+            recon_loss, kld_loss = loss_function(
+                reconstructed_data, real_data, mu, logvar
+            )
             vae_loss = recon_loss + KLD_WEIGHT * kld_loss
-            
+
             # GAN Loss for Generator
             fake_validity = model.discriminator(reconstructed_data, lengths)
             g_loss_gan = adversarial_loss(fake_validity, real_labels)
@@ -154,7 +170,7 @@ def train(args):
             g_loss = (args.vae_weight * vae_loss) + (args.gan_weight * g_loss_gan)
             g_loss.backward()
             optimizer_G.step()
-            
+
             total_g_loss += g_loss.item()
             total_d_loss += d_loss.item()
 
@@ -163,7 +179,7 @@ def train(args):
                     f"Epoch {epoch}/{args.epochs} | Batch {batch_idx}/{len(data_loader)} | "
                     f"D Loss: {d_loss.item():.4f} | G Loss: {g_loss.item():.4f}"
                 )
-        
+
         avg_g_loss = total_g_loss / len(data_loader)
         avg_d_loss = total_d_loss / len(data_loader)
         logging.info(f"--- End of Epoch {epoch} ---")
@@ -174,7 +190,9 @@ def train(args):
         # 5. Save Model Checkpoint
         # --------------------------------------------------------------------
         if epoch % SAVE_MODEL_EPOCH_INTERVAL == 0:
-            model_save_path = os.path.join(args.model_path, f"{args.model_file_name}_epoch_{epoch}.pth")
+            model_save_path = os.path.join(
+                args.model_path, f"{args.model_file_name}_epoch_{epoch}.pth"
+            )
             torch.save(model.state_dict(), model_save_path)
             logging.info(f"Model saved to {model_save_path}")
 
@@ -185,13 +203,42 @@ def train(args):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Train the handwriting synthesis model.")
-    parser.add_argument("--dataset_path", type=str, required=True, help="Path to the root of the raw dataset directory.")
-    parser.add_argument("--model_path", type=str, default=MODEL_DIR, help="Directory to save the trained models.")
-    parser.add_argument("--model_file_name", type=str, default="handwriting_model.pth", help="Name of the final model file.")
-    parser.add_argument("--epochs", type=int, default=100, help="Number of training epochs.")
-    parser.add_argument("--vae_weight", type=float, default=0.5, help="Weight for the VAE loss component.")
-    parser.add_argument("--gan_weight", type=float, default=0.5, help="Weight for the GAN loss component.")
-    
+    parser = argparse.ArgumentParser(
+        description="Train the handwriting synthesis model."
+    )
+    parser.add_argument(
+        "--dataset_path",
+        type=str,
+        required=True,
+        help="Path to the root of the raw dataset directory.",
+    )
+    parser.add_argument(
+        "--model_path",
+        type=str,
+        default=MODEL_DIR,
+        help="Directory to save the trained models.",
+    )
+    parser.add_argument(
+        "--model_file_name",
+        type=str,
+        default="handwriting_model.pth",
+        help="Name of the final model file.",
+    )
+    parser.add_argument(
+        "--epochs", type=int, default=100, help="Number of training epochs."
+    )
+    parser.add_argument(
+        "--vae_weight",
+        type=float,
+        default=0.5,
+        help="Weight for the VAE loss component.",
+    )
+    parser.add_argument(
+        "--gan_weight",
+        type=float,
+        default=0.5,
+        help="Weight for the GAN loss component.",
+    )
+
     args = parser.parse_args()
     train(args)

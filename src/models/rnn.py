@@ -9,11 +9,15 @@ LSTM to handle the variable-length sequences of stroke points.
 import torch
 import torch.nn as nn
 
+
 class SequenceModel(nn.Module):
     """
     A sequence model based on an LSTM for processing handwriting stroke data.
     """
-    def __init__(self, input_dim: int, hidden_dim: int, num_layers: int, dropout: float):
+
+    def __init__(
+        self, input_dim: int, hidden_dim: int, num_layers: int, dropout: float
+    ):
         """
         Initializes the SequenceModel.
 
@@ -31,12 +35,12 @@ class SequenceModel(nn.Module):
             num_layers=num_layers,
             batch_first=True,  # Input/output tensors are (batch, seq, feature)
             dropout=dropout,
-            bidirectional=True # Bidirectional processing can capture context better
+            bidirectional=True,  # Bidirectional processing can capture context better
         )
         self.input_dim = input_dim
         self.hidden_dim = hidden_dim
         self.num_layers = num_layers
-    
+
     def forward(self, x, lengths):
         """
         Forward pass for the sequence model.
@@ -60,8 +64,6 @@ class SequenceModel(nn.Module):
         packed_output, (hidden, cell) = self.lstm(packed_x)
 
         # Unpack the sequence
-        output, _ = nn.utils.rnn.pad_packed_sequence(
-            packed_output, batch_first=True
-        )
+        output, _ = nn.utils.rnn.pad_packed_sequence(packed_output, batch_first=True)
 
         return output, (hidden, cell)

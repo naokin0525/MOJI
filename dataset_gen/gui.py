@@ -1,14 +1,23 @@
 """
 Defines the main GUI window for the dataset generation tool.
 """
+
 import os
 from PyQt5.QtWidgets import (
-    QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLineEdit,
-    QLabel, QFileDialog, QMessageBox
+    QMainWindow,
+    QWidget,
+    QVBoxLayout,
+    QHBoxLayout,
+    QPushButton,
+    QLineEdit,
+    QLabel,
+    QFileDialog,
+    QMessageBox,
 )
 from PyQt5.QtCore import Qt
 from .drawing_canvas import DrawingCanvas
 from .svg_exporter import strokes_to_svg
+
 
 class DatasetGeneratorGUI(QMainWindow):
     def __init__(self):
@@ -43,11 +52,11 @@ class DatasetGeneratorGUI(QMainWindow):
         bottom_controls_layout.addWidget(QLabel("Character to Draw:"))
         self.char_input = QLineEdit()
         self.char_input.setFixedWidth(50)
-        self.char_input.setMaxLength(1) # Allow only one character
-        
+        self.char_input.setMaxLength(1)  # Allow only one character
+
         self.save_button = QPushButton("Save & Clear")
         self.save_button.clicked.connect(self.save_drawing)
-        
+
         self.clear_button = QPushButton("Clear Canvas")
         self.clear_button.clicked.connect(self.canvas.clear_canvas)
 
@@ -83,7 +92,9 @@ class DatasetGeneratorGUI(QMainWindow):
             QMessageBox.warning(self, "Error", "Please enter the character you drew.")
             return
         if not strokes:
-            QMessageBox.warning(self, "Error", "The canvas is empty. Please draw a character.")
+            QMessageBox.warning(
+                self, "Error", "The canvas is empty. Please draw a character."
+            )
             return
 
         # --- SVG Export ---
@@ -91,13 +102,15 @@ class DatasetGeneratorGUI(QMainWindow):
             filename = f"{char}.svg"
             filepath = os.path.join(self.save_directory, filename)
 
-            svg_content = strokes_to_svg(strokes, self.canvas.width(), self.canvas.height())
+            svg_content = strokes_to_svg(
+                strokes, self.canvas.width(), self.canvas.height()
+            )
 
             with open(filepath, "w", encoding="utf-8") as f:
                 f.write(svg_content)
-            
+
             QMessageBox.information(self, "Success", f"Saved drawing to:\n{filepath}")
-            
+
             # Reset for next character
             self.canvas.clear_canvas()
             self.char_input.clear()

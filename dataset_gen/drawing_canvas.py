@@ -1,23 +1,26 @@
 """
 A custom QWidget that serves as a drawing canvas for creating characters.
 """
+
 from PyQt5.QtWidgets import QWidget
 from PyQt5.QtGui import QPainter, QPen, QImage, QColor
 from PyQt5.QtCore import Qt, QPoint
+
 
 class DrawingCanvas(QWidget):
     """
     A canvas that captures mouse events to allow free-form drawing.
     """
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setAttribute(Qt.WA_StaticContents)
         self.setFixedSize(400, 400)
-        
+
         # The image buffer where the drawing is stored
         self.image = QImage(self.size(), QImage.Format_RGB32)
         self.image.fill(Qt.white)
-        
+
         self.drawing = False
         self.last_point = QPoint()
         self.strokes = []
@@ -36,7 +39,7 @@ class DrawingCanvas(QWidget):
             painter.setPen(pen)
             painter.drawLine(self.last_point, event.pos())
             painter.end()
-            
+
             self.last_point = event.pos()
             self.current_stroke.append(self.last_point)
             self.update()

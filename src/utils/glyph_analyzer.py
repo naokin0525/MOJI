@@ -11,7 +11,10 @@ import logging
 
 from src.config import GLYPHWIKI_API_URL
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
+
 
 def get_kanji_components(kanji_character: str):
     """
@@ -31,8 +34,8 @@ def get_kanji_components(kanji_character: str):
     try:
         # The API uses the character's name in the URL, e.g., u8c4a for '豊'
         char_code = f"u{ord(kanji_character):x}"
-        params = {'name': char_code}
-        
+        params = {"name": char_code}
+
         response = requests.get(GLYPHWIKI_API_URL, params=params, timeout=5)
         response.raise_for_status()  # Raises an HTTPError for bad responses
 
@@ -40,15 +43,17 @@ def get_kanji_components(kanji_character: str):
         # We are interested in parsing this to find relationships
         # A more complex parser would be needed for a full implementation.
         # For this example, we just confirm connectivity.
-        
+
         # A full implementation would parse response.text to find component glyphs.
         # For example, if it returns "u5c71:u4e00,u4e28", it means '山' is composed of '一' and '丨'.
         # This is a placeholder for that logic.
         if response.ok and ":" in response.text:
-            parts = response.text.strip().split(':')[1].split(',')
+            parts = response.text.strip().split(":")[1].split(",")
             # Convert unicode strings back to characters
-            components = [chr(int(p[1:], 16)) for p in parts if p.startswith('u')]
-            logging.info(f"Components for '{kanji_character}' ({char_code}): {components}")
+            components = [chr(int(p[1:], 16)) for p in parts if p.startswith("u")]
+            logging.info(
+                f"Components for '{kanji_character}' ({char_code}): {components}"
+            )
             return components
         return None
 

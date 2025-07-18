@@ -4,10 +4,10 @@ This is a simple graphical user interface (GUI) tool for creating handwritten ch
 
 ## Features
 
--   **Drawing Canvas**: A simple white canvas to draw characters with your mouse or a graphics tablet.
--   **Character Input**: A text field to specify the character you are drawing.
--   **Automatic SVG Export**: Saves the drawing as an SVG file with the character as the filename (e.g., `a.svg`, `字.svg`).
--   **Directory Selection**: A dialog to choose where to save the dataset files.
+- **Drawing Canvas**: A simple white canvas to draw characters with your mouse or a graphics tablet.
+- **Character Input**: A text field to specify the character you are drawing.
+- **Automatic SVG Export**: Saves the drawing as an SVG file with the character as the filename (e.g., `a.svg`, `字.svg`).
+- **Directory Selection**: A dialog to choose where to save the dataset files.
 
 ## Requirements
 
@@ -27,19 +27,23 @@ pip install PyQt5
     ```
 
 2.  **Select a Save Directory:**
-    -   Click the "Select Directory" button.
-    -   Choose an existing folder or create a new one where you want to store your SVG files (e.g., `data/raw/my_custom_dataset`).
+
+    - Click the "Select Directory" button.
+    - Choose an existing folder or create a new one where you want to store your SVG files (e.g., `data/raw/my_custom_dataset`).
 
 3.  **Enter a Character:**
-    -   In the "Character to Draw" text box, type the single character you intend to draw (e.g., `b` or `猫`).
+
+    - In the "Character to Draw" text box, type the single character you intend to draw (e.g., `b` or `猫`).
 
 4.  **Draw the Character:**
-    -   Use your mouse to draw the character on the white canvas area. Each continuous stroke (from mouse-down to mouse-up) is recorded as a separate path.
+
+    - Use your mouse to draw the character on the white canvas area. Each continuous stroke (from mouse-down to mouse-up) is recorded as a separate path.
 
 5.  **Save the Drawing:**
-    -   Click the "Save & Clear" button.
-    -   The tool will save your drawing as an SVG file in the selected directory. For example, if you entered `猫`, the file will be named `猫.svg`.
-    -   The canvas will automatically be cleared, ready for you to draw the next character.
+
+    - Click the "Save & Clear" button.
+    - The tool will save your drawing as an SVG file in the selected directory. For example, if you entered `猫`, the file will be named `猫.svg`.
+    - The canvas will automatically be cleared, ready for you to draw the next character.
 
 6.  **Repeat:**
-    -   Repeat steps 3-5 for every character you want to add to your dataset.
+    - Repeat steps 3-5 for every character you want to add to your dataset.
